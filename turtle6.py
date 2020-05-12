@@ -1,6 +1,11 @@
 import sys
 import turtle
 import random
+import pyaudio
+import wave
+import time
+import pathlib
+import threading
 
 FIELD_DEFAULT = "classic"
 LEVEL_ONE = "arrow"
@@ -9,40 +14,49 @@ LEVEL_THREE = "square"
 LEVEL_FOUR = "circle"
 LEVEL_FIVE = "turtle"
 
+# global wf
+# global p
+# global stream
+
 # sp = ["arrow", "turtle", "circle", "square", "triangle", "classic"]
-wait_flg = False
 
-wn = turtle.Screen()
-wn.screensize(400,400)
-wn.reset()
-wn.setworldcoordinates(-400,-400,400,400)
-wn.bgcolor("black")
-wn.title("game")
-wn.mode("logo")
+#define callback
+def callback(in_data, frame_count, time_info, status):
+    data = wf.readframes(frame_count)
+    return (data, pyaudio.paContinue)
 
-FIELD = []
-FIELD1 = []
-for x in [-3,-1,1,3]:
-    for y in [-3,-1,1,3]:
-        t=''
-        t=turtle.Turtle()
-        # t.shape("circle")
-        t.penup()
-        t.hideturtle()
-        t.shape(FIELD_DEFAULT)
-        t.color("blue")
+#open stream using callback
+def create():
+    global p
+    global stream
+    p = pyaudio.PyAudio()
+    stream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
+                    channels=wf.getnchannels(),
+                    rate=wf.getframerate(),
+                    output=True,
+                    stream_callback=callback)
+    # return stream
 
-        t.setx(x*50)
-        t.sety(y*50)
-        # t.pendown()
-        if abs(x) != 5 and abs(y) != 5:
-            t.st()
-            # isvisible()
-        FIELD1.append(t)
-    FIELD.append(FIELD1)
-    FIELD1 = []
-# print(FIELD)
+def play_bgm():
+    global bgm
+    global stream
+    global wf
+    bgm = True
+    wf = wave.open(r"BGM\loop3.wav", 'rb')
+    create()
+    stream.start_stream()
 
+def check_bgm():
+    global bgm
+    global stream
+    if not stream.is_active():
+        bgm = False
+    if bgm is False:
+        create_thread()
+
+def create_thread():
+    mythreading = threading.Thread(target=play_bgm)
+    mythreading.start()
 
 """
 フィールドの状態を取得する
@@ -59,14 +73,11 @@ def get_field_condition(cond):
             elif cond == 2:
                 if f.shape() != FIELD_DEFAULT:
                     turtle_list.append(f)
-    # print(empty_field)
     return turtle_list
 
 # ランダムでレベル1を生成する
 def create_new():
-    # 空きスペースのみ取得
     empty_field = get_field_condition(1)
-    # print(empty_field)
     # 空きスペースが０なら終了
     if len(empty_field) == 0:
         msg = """complete!!
@@ -75,13 +86,18 @@ def create_new():
         t.color('red')
         t.setpos(0,200)
         t.write(msg,True,"center",("Sans",30,"bold"))
+        #stop stream
+        stream.stop_stream()
+        stream.close()
+        wf.close()
+
+        #close pyaudio
+        p.terminate()
 
         return 0
 
     # ランダムで空きスペースにレベル１を生成
     select_field = random.choice(empty_field)
-    # print(select_field)
-    # select_field.write(LEVEL_ONE, True, align="center")
     set_lev(select_field)
 
 # 終了
@@ -223,6 +239,7 @@ def move2(corse,ncorse,pb):
 
 # 矢印を押した動作
 def move(pb):
+    check_bgm()
     global wait_flg
     if wait_flg is True:
         return 0
@@ -248,8 +265,45 @@ def move(pb):
     wait_flg = False
 
 
+wait_flg = False
+bgm = False
+
+wn = turtle.Screen()
+wn.screensize(400,400)
+wn.reset()
+wn.setworldcoordinates(-400,-400,400,400)
+wn.bgcolor("black")
+wn.title("game")
+wn.mode("logo")
+
+FIELD = []
+FIELD1 = []
+for x in [-3,-1,1,3]:
+    for y in [-3,-1,1,3]:
+        t=''
+        t=turtle.Turtle()
+        # t.shape("circle")
+        t.penup()
+        t.hideturtle()
+        t.shape(FIELD_DEFAULT)
+        t.color("blue")
+
+        t.setx(x*50)
+        t.sety(y*50)
+        # t.pendown()
+        if abs(x) != 5 and abs(y) != 5:
+            t.st()
+        FIELD1.append(t)
+    FIELD.append(FIELD1)
+    FIELD1 = []
+
+# wf = wave.open(r"BGM\loop3.wav", 'rb')
+# play_bgm()
+# check_bgm(1)
+create_thread()
+
+
 wn.onkey(end,'q')
-# wn.onkey(create_new,'t')
 
 wn.onkey(lambda: move(1),'Up')
 wn.onkey(lambda: move(-1),'Down')
@@ -259,5 +313,10 @@ wn.onkey(lambda: move(-2),'Left')
 create_new()
 
 wn.listen()
-
 wn.mainloop()
+
+
+
+#wait for stream to finish
+# while stream.is_active():
+#     time.sleep(0.1)
