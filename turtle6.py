@@ -10,6 +10,7 @@ LEVEL_FOUR = "circle"
 LEVEL_FIVE = "turtle"
 
 # sp = ["arrow", "turtle", "circle", "square", "triangle", "classic"]
+wait_flg = False
 
 wn = turtle.Screen()
 wn.screensize(400,400)
@@ -18,7 +19,7 @@ wn.setworldcoordinates(-400,-400,400,400)
 wn.bgcolor("black")
 wn.title("game")
 wn.mode("logo")
-# FIELD = [[f for f in range(4)] for i in range (4)]
+
 FIELD = []
 FIELD1 = []
 for x in [-3,-1,1,3]:
@@ -41,6 +42,7 @@ for x in [-3,-1,1,3]:
     FIELD.append(FIELD1)
     FIELD1 = []
 # print(FIELD)
+
 
 """
 フィールドの状態を取得する
@@ -69,26 +71,43 @@ def create_new():
     if len(empty_field) == 0:
         msg = """complete!!
         press q botton """
+        t=turtle.Turtle()
+        t.color('red')
+        t.setpos(0,200)
+        t.write(msg,True,"center",("Sans",30,"bold"))
+
+        return 0
 
     # ランダムで空きスペースにレベル１を生成
     select_field = random.choice(empty_field)
     # print(select_field)
     # select_field.write(LEVEL_ONE, True, align="center")
-    select_field.shape(LEVEL_ONE)
+    set_lev(select_field)
 
 # 終了
 def end():
     sys.exit()
 
-def lu(sh):
-    if sh == LEVEL_ONE:
-        return LEVEL_TWO
-    if sh == LEVEL_TWO:
-        return LEVEL_THREE
-    if sh == LEVEL_THREE:
-        return LEVEL_FOUR
-    if sh == LEVEL_FOUR:
-        return LEVEL_FIVE
+def set_lev(t,flg=False):
+    if flg is True:
+        t.shape(FIELD_DEFAULT)
+        t.color('blue')
+    else:
+        if t.shape() == FIELD_DEFAULT:
+            t.shape(LEVEL_ONE)
+            t.color('yellow')
+        elif t.shape() == LEVEL_ONE:
+            t.shape(LEVEL_TWO)
+            t.color('pink')
+        elif t.shape() == LEVEL_TWO:
+            t.shape(LEVEL_THREE)
+            t.color('white')
+        elif t.shape() == LEVEL_THREE:
+            t.shape(LEVEL_FOUR)
+            t.color('red')
+        elif t.shape() == LEVEL_FOUR:
+            t.shape(LEVEL_FIVE)
+            t.color('green')
 
 def corse_check(corse,pb):
     if len(corse) >= 2:
@@ -97,18 +116,19 @@ def corse_check(corse,pb):
         else:
             corse.sort()
         pre = [-200,FIELD[0][0],FIELD_DEFAULT]
+        # フラグがフォルスなら
         lu_flg = False
         for c in corse:
             if lu_flg == False:
-                if c[1].shape() == pre[2]:
-                    # del pre[2]
-                    pre[1].shape(FIELD_DEFAULT)
-                    c[1].shape(lu(c[1].shape()))
+                if c[1].shape() == pre[2] and pre[2] != LEVEL_FIVE:
+                    set_lev(pre[1],True)
+                    set_lev(c[1])
                     lu_flg = True
-                else:
-                    lu_flg = False
-                c.append(c[1].shape())
-                pre = c
+
+            else:
+                lu_flg = False
+            c.append(c[1].shape())
+            pre = c
 
 # コースごとにアクティブタートル取得
 def get_atfc(active_field,pb):
@@ -145,18 +165,12 @@ def get_atfc(active_field,pb):
 
 def move2(corse,ncorse,pb):
     if pb > 0:
-        print(corse)
-        print(ncorse)
-        print(1)
         corse.sort(reverse=True)
         ncorse.sort(reverse=True)
         if len(corse) != 0 and len(ncorse) != 0:
             while min(corse) < max(ncorse):
                 pos = 150
                 for c in corse:
-                    print(c)
-                    print(pos)
-
                     if c[0] == pos:
                         pos -= 100
                         continue
@@ -174,30 +188,23 @@ def move2(corse,ncorse,pb):
                                 else:
                                     n[1].setx(n[0])
                     pos -= 100
-                    print(corse)
-                    print(ncorse)
-                    print(2)
                     corse.sort(reverse=True)
                     ncorse.sort(reverse=True)
 
                     yield(0)
     else:
-        print(corse)
-        print(ncorse)
-        print(1)
         corse.sort()
         ncorse.sort()
         if len(corse) != 0 and len(ncorse) != 0:
             while max(corse) > min(ncorse):
                 pos = -150
                 for c in corse:
-                    print(c)
-                    print(pos)
                     if c[0] == pos:
                         pos += 100
                         continue
                     elif c[0] > pos:
                         c[0] -= 100
+                        # ここから分割してみる
                         if pb == -1:
                             c[1].sety(c[0])
                         else:
@@ -210,18 +217,16 @@ def move2(corse,ncorse,pb):
                                 else:
                                     n[1].setx(n[0])
                     pos += 100
-                    print(corse)
-                    print(ncorse)
-                    print(2)
                     corse.sort()
-
-
-
                     ncorse.sort()
                     yield(0)
 
 # 矢印を押した動作
 def move(pb):
+    global wait_flg
+    if wait_flg is True:
+        return 0
+    wait_flg = True
     # アクティブを取得
     active_field = get_field_condition(2)
     # コースごとジェネレータイテレータ up downはxグループ right leftはyグループ
@@ -240,20 +245,19 @@ def move(pb):
         if sum([next(c,1) for c in corses]) >= 4:
             break
     create_new()
+    wait_flg = False
 
 
 wn.onkey(end,'q')
-
-wn.onkey(create_new,'t')
+# wn.onkey(create_new,'t')
 
 wn.onkey(lambda: move(1),'Up')
 wn.onkey(lambda: move(-1),'Down')
 wn.onkey(lambda: move(2),'Right')
 wn.onkey(lambda: move(-2),'Left')
 
+create_new()
 
 wn.listen()
-create_new()
-# 同時に動かす
-# https://teratail.com/questions/191385
+
 wn.mainloop()
