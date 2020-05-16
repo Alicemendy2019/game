@@ -14,10 +14,6 @@ LEVEL_THREE = "square"
 LEVEL_FOUR = "circle"
 LEVEL_FIVE = "turtle"
 
-# global wf
-# global p
-# global stream
-
 # sp = ["arrow", "turtle", "circle", "square", "triangle", "classic"]
 
 #define callback
@@ -316,7 +312,7 @@ wn.listen()
 wn.mainloop()
 
 
-
-#wait for stream to finish
-# while stream.is_active():
-#     time.sleep(0.1)
+# TODO: 100回カウンタ
+# 動作なめらか
+# 先のタートルで進化
+# https://docs.python.org/ja/3/library/turtle.html
