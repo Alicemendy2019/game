@@ -121,7 +121,7 @@ def set_lev(t,flg=False):
             t.shape(LEVEL_FIVE)
             t.color('green')
 
-def corse_check(corse,pb):
+def corse_check_for_levelup(corse,pb):
     if len(corse) >= 2:
         if pb > 0:
             corse.sort(reverse=True)
@@ -242,17 +242,18 @@ def move(pb):
     wait_flg = True
     # アクティブを取得
     active_field = get_field_condition(2)
-    # コースごとジェネレータイテレータ up downはxグループ right leftはyグループ
+    # コースごとアクティブタートルジェネレータイテレータ
     atgi = get_atfc(active_field,pb)
+    # ２つ以上アクティブならレベルアップ用にコースチェックする
     for corse in atgi:
         if len(corse) >= 2:
-            corse_check(corse,pb)
-
+            corse_check_for_levelup(corse,pb)
+    # アクティブタートルとノンアクティブタートル取得
     active_field = get_field_condition(2)
     atgi = get_atfc(active_field,pb)
     nonactive_field = get_field_condition(1)
     natgi = get_atfc(nonactive_field,pb)
-
+    # 移動する
     corses = [move2(corse,ncorse,pb) for corse,ncorse in zip(atgi,natgi)]
     while True:
         if sum([next(c,1) for c in corses]) >= 4:
