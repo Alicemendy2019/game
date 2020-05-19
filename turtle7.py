@@ -117,7 +117,6 @@ def create_new():
 
         #close pyaudio
         p.terminate()
-
         return 0
 
     # ランダムで空きスペースにレベル１を生成
