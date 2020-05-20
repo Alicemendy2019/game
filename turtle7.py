@@ -7,41 +7,41 @@ import time
 import pathlib
 import threading
 
-FIELD_DEFAULT = "classic"
-LEVEL_ONE = "arrow"
-LEVEL_TWO = "triangle"
-LEVEL_THREE = "square"
-LEVEL_FOUR = "circle"
-LEVEL_FIVE = "turtle"
+FIELD_DEFAULT = ("classic",'blue')
+LEVEL_ONE = ("arrow",'yellow')
+LEVEL_TWO = ("triangle",'pink')
+LEVEL_THREE = ("square",'white')
+LEVEL_FOUR = ("circle",'red')
+LEVEL_FIVE = ("turtle",'green')
 
 LEVEL = FIELD_DEFAULT
 
 def reset_level(self):
     self.LEVEL = FIELD_DEFAULT
-    self.shape(self.LEVEL)
-    self.color('blue')
+    self.shape(self.LEVEL[0])
+    self.color(self.LEVEL[1])
 
 def set_lev(self):
     if self.LEVEL == FIELD_DEFAULT:
         self.LEVEL = LEVEL_ONE
-        self.shape(self.LEVEL)
-        self.color('yellow')
+        self.shape(self.LEVEL[0])
+        self.color(self.LEVEL[1])
     elif self.LEVEL == LEVEL_ONE:
         self.LEVEL = LEVEL_TWO
-        self.shape(self.LEVEL)
-        self.color('pink')
+        self.shape(self.LEVEL[0])
+        self.color(self.LEVEL[1])
     elif self.LEVEL == LEVEL_TWO:
         self.LEVEL = LEVEL_THREE
-        self.shape(self.LEVEL)
-        self.color('white')
+        self.shape(self.LEVEL[0])
+        self.color(self.LEVEL[1])
     elif self.LEVEL == LEVEL_THREE:
         self.LEVEL = LEVEL_FOUR
-        self.shape(self.LEVEL)
-        self.color('red')
+        self.shape(self.LEVEL[0])
+        self.color(self.LEVEL[1])
     elif self.LEVEL == LEVEL_FOUR:
         self.LEVEL = LEVEL_FIVE
-        self.shape(self.LEVEL)
-        self.color('green')
+        self.shape(self.LEVEL[0])
+        self.color(self.LEVEL[1])
 
 
 #define callback
@@ -59,7 +59,6 @@ def create():
                     rate=wf.getframerate(),
                     output=True,
                     stream_callback=callback)
-    # return stream
 
 def play_bgm():
     global bgm
@@ -82,20 +81,15 @@ def create_thread():
     mythreading = threading.Thread(target=play_bgm)
     mythreading.start()
 
-"""
-フィールドの状態を取得する
-１．空きスペース　from create_new
-２．
-"""
 def get_field_condition(cond):
     turtle_list = []
     for fs in FIELD:
         for f in fs:
             if cond == 1:
-                if f.shape() == FIELD_DEFAULT:
+                if f.shape() == FIELD_DEFAULT[0]:
                     turtle_list.append(f)
             elif cond == 2:
-                if f.shape() != FIELD_DEFAULT:
+                if f.shape() != FIELD_DEFAULT[0]:
                     turtle_list.append(f)
     return turtle_list
 
@@ -134,12 +128,12 @@ def corse_check_for_levelup(corse,pb):
             corse.sort(reverse=True)
         else:
             corse.sort()
-        pre = [-200,FIELD[0][0],FIELD_DEFAULT]
+        pre = [-200,FIELD[0][0],FIELD_DEFAULT[0]]
         # フラグがフォルスなら
         lu_flg = False
         for c in corse:
             if lu_flg == False:
-                if c[1].shape() == pre[2] and pre[2] != LEVEL_FIVE:
+                if c[1].shape() == pre[2] and pre[2] != LEVEL_FIVE[0]:
                     pre[1].reset_level(pre[1])
                     c[1].set_lev(c[1])
                     lu_flg = True
@@ -184,61 +178,36 @@ def get_atfc(active_field,pb):
 
 def move2(corse,ncorse,pb):
     if pb > 0:
-        corse.sort(reverse=True)
-        ncorse.sort(reverse=True)
-        if len(corse) != 0 and len(ncorse) != 0:
-            while min(corse) < max(ncorse):
-                pos = 150
-                for c in corse:
-                    if c[0] == pos:
-                        pos -= 100
-                        continue
-                    elif c[0] < pos:
-                        c[0] += 100
-                        if pb == 1:
-                            c[1].sety(c[0])
-                        else:
-                            c[1].setx(c[0])
-                        for n in ncorse:
-                            if n[0] == c[0]:
-                                n[0] -= 100
-                                if pb == 1:
-                                    n[1].sety(n[0])
-                                else:
-                                    n[1].setx(n[0])
-                    pos -= 100
-                    corse.sort(reverse=True)
-                    ncorse.sort(reverse=True)
-
-                    yield(0)
+        cond={'reverse':True,'start_pos':150,'step_pos':-100,'corse1':corse,'corse2':ncorse,'neg':1}
     else:
-        corse.sort()
-        ncorse.sort()
-        if len(corse) != 0 and len(ncorse) != 0:
-            while max(corse) > min(ncorse):
-                pos = -150
-                for c in corse:
-                    if c[0] == pos:
-                        pos += 100
-                        continue
-                    elif c[0] > pos:
-                        c[0] -= 100
-                        # ここから分割してみる
-                        if pb == -1:
-                            c[1].sety(c[0])
-                        else:
-                            c[1].setx(c[0])
-                        for n in ncorse:
-                            if n[0] == c[0]:
-                                n[0] += 100
-                                if pb == -1:
-                                    n[1].sety(n[0])
-                                else:
-                                    n[1].setx(n[0])
-                    pos += 100
-                    corse.sort()
-                    ncorse.sort()
-                    yield(0)
+        cond={'reverse':False,'start_pos':-150,'step_pos':100,'corse1':ncorse,'corse2':corse,'neg':-1}
+    corse.sort(reverse=cond['reverse'])
+    ncorse.sort(reverse=cond['reverse'])
+    if len(corse) != 0 and len(ncorse) != 0:
+        while min(cond['corse1']) < max(cond['corse2']):
+            pos = cond['start_pos']
+            for c in corse:
+                print(c)
+                if c[0] == pos:
+                    pos += cond['step_pos']
+                    continue
+                elif c[0]*cond['neg'] < pos*cond['neg']:
+                    c[0] += cond['step_pos']*-1
+                    if pb == 1*cond['neg']:
+                        c[1].sety(c[0])
+                    else:
+                        c[1].setx(c[0])
+                    for n in ncorse:
+                        if n[0] == c[0]:
+                            n[0] += cond['step_pos']
+                            if pb == 1*cond['neg']:
+                                n[1].sety(n[0])
+                            else:
+                                n[1].setx(n[0])
+                pos += cond['step_pos']
+                corse.sort(reverse=cond['reverse'])
+                ncorse.sort(reverse=cond['reverse'])
+                yield(0)
 
 # 矢印を押した動作
 def move(pb):
@@ -268,7 +237,6 @@ def move(pb):
     create_new()
     wait_flg = False
 
-
 wait_flg = False
 bgm = False
 
@@ -286,32 +254,24 @@ for x in [-3,-1,1,3]:
     for y in [-3,-1,1,3]:
         t=''
         t=turtle.Turtle()
-        # t.shape("circle")
         t.penup()
         t.hideturtle()
-        # t.shape(FIELD_DEFAULT)
-        # t.color("blue")
         setattr(t,'LEVEL',LEVEL)
         setattr(t,'reset_level',reset_level)
         setattr(t,'set_lev',set_lev)
         t.reset_level(t)
         t.setx(x*50)
         t.sety(y*50)
-        # t.pendown()
         if abs(x) != 5 and abs(y) != 5:
             t.st()
         FIELD1.append(t)
     FIELD.append(FIELD1)
     FIELD1 = []
 
-# wf = wave.open(r"BGM\loop3.wav", 'rb')
-# play_bgm()
-# check_bgm(1)
 create_thread()
 
 
 wn.onkey(end,'q')
-
 wn.onkey(lambda: move(1),'Up')
 wn.onkey(lambda: move(-1),'Down')
 wn.onkey(lambda: move(2),'Right')
@@ -321,7 +281,6 @@ create_new()
 
 wn.listen()
 wn.mainloop()
-
 
 # TODO: 100回カウンタ
 # 動作なめらか
