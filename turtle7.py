@@ -24,25 +24,16 @@ def reset_level(self):
 def set_lev(self):
     if self.LEVEL == FIELD_DEFAULT:
         self.LEVEL = LEVEL_ONE
-        self.shape(self.LEVEL[0])
-        self.color(self.LEVEL[1])
     elif self.LEVEL == LEVEL_ONE:
         self.LEVEL = LEVEL_TWO
-        self.shape(self.LEVEL[0])
-        self.color(self.LEVEL[1])
     elif self.LEVEL == LEVEL_TWO:
         self.LEVEL = LEVEL_THREE
-        self.shape(self.LEVEL[0])
-        self.color(self.LEVEL[1])
     elif self.LEVEL == LEVEL_THREE:
         self.LEVEL = LEVEL_FOUR
-        self.shape(self.LEVEL[0])
-        self.color(self.LEVEL[1])
     elif self.LEVEL == LEVEL_FOUR:
         self.LEVEL = LEVEL_FIVE
-        self.shape(self.LEVEL[0])
-        self.color(self.LEVEL[1])
-
+    self.shape(self.LEVEL[0])
+    self.color(self.LEVEL[1])
 
 #define callback
 def callback(in_data, frame_count, time_info, status):
@@ -121,7 +112,6 @@ def create_new():
 def end():
     sys.exit()
 
-
 def corse_check_for_levelup(corse,pb):
     if len(corse) >= 2:
         if pb > 0:
@@ -137,7 +127,6 @@ def corse_check_for_levelup(corse,pb):
                     pre[1].reset_level(pre[1])
                     c[1].set_lev(c[1])
                     lu_flg = True
-
             else:
                 lu_flg = False
             c.append(c[1].shape())
