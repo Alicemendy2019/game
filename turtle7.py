@@ -6,6 +6,7 @@ import wave
 import time
 import pathlib
 import threading
+import operator
 
 FIELD_DEFAULT = ("classic",'blue')
 LEVEL_ONE = ("arrow",'yellow')
@@ -140,26 +141,20 @@ def get_atfc(active_field,pb):
     corse3 = []
     corse4 = []
     if abs(pb) == 1:
-        for f in active_field:
-            if f.xcor() == -150:
-                corse1.append([f.ycor(),f])
-            if f.xcor() == -50:
-                corse2.append([f.ycor(),f])
-            if f.xcor() == 50:
-                corse3.append([f.ycor(),f])
-            if f.xcor() == 150:
-                corse4.append([f.ycor(),f])
-    if abs(pb) == 2:
-        for f in active_field:
-            if f.ycor() == -150:
-                corse1.append([f.xcor(),f])
-            if f.ycor() == -50:
-                corse2.append([f.xcor(),f])
-            if f.ycor() == 50:
-                corse3.append([f.xcor(),f])
-            if f.ycor() == 150:
-                corse4.append([f.xcor(),f])
-
+        mc1=operator.methodcaller('xcor')
+        mc2=operator.methodcaller('ycor')
+    elif abs(pb) == 2:
+        mc2=operator.methodcaller('xcor')
+        mc1=operator.methodcaller('ycor')
+    for f in active_field:
+        if mc1(f) == -150:
+            corse1.append([mc2(f),f])
+        if mc1(f) == -50:
+            corse2.append([mc2(f),f])
+        if mc1(f) == 50:
+            corse3.append([mc2(f),f])
+        if mc1(f) == 150:
+            corse4.append([mc2(f),f])
     yield corse1
     yield corse2
     yield corse3
