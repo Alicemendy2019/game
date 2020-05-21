@@ -74,15 +74,10 @@ def create_thread():
     mythreading.start()
 
 def get_field_condition(cond):
-    turtle_list = []
-    for fs in FIELD:
-        for f in fs:
-            if cond == 1:
-                if f.shape() == FIELD_DEFAULT[0]:
-                    turtle_list.append(f)
-            elif cond == 2:
-                if f.shape() != FIELD_DEFAULT[0]:
-                    turtle_list.append(f)
+    turtle_list = [f for fs in FIELD for f in fs \
+        if ((cond == 1 and f.shape() == FIELD_DEFAULT[0]) \
+            or (cond == 2 and f.shape() != FIELD_DEFAULT[0]))]
+
     return turtle_list
 
 # ランダムでレベル1を生成する
