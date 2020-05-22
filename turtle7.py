@@ -8,15 +8,6 @@ import pathlib
 import threading
 import operator
 
-FIELD_DEFAULT = ("classic",'blue')
-LEVEL_ONE = ("arrow",'yellow')
-LEVEL_TWO = ("triangle",'pink')
-LEVEL_THREE = ("square",'white')
-LEVEL_FOUR = ("circle",'red')
-LEVEL_FIVE = ("turtle",'green')
-
-LEVEL = FIELD_DEFAULT
-
 def reset_level(self):
     self.LEVEL = FIELD_DEFAULT
     self.shape(self.LEVEL[0])
@@ -77,27 +68,70 @@ def get_field_condition(cond):
     turtle_list = [f for fs in FIELD for f in fs \
         if ((cond == 1 and f.shape() == FIELD_DEFAULT[0]) \
             or (cond == 2 and f.shape() != FIELD_DEFAULT[0]))]
-
     return turtle_list
 
+def finish():
+    msg = """finish!!
+    end : press q botton
+    retry : press r botton"""
+    t=turtle.Turtle()
+    t.color('red')
+    t.setpos(0,-200)
+    t.write(msg,True,"center",("Sans",20,"bold"))
+    #stop stream
+    stream.stop_stream()
+    stream.close()
+    wf.close()
+    #close pyaudio
+    p.terminate()
+    active_field = get_field_condition(2)
+    tp1 , tp2 , tp3 , tp4 , tp5 = [],[],[],[],[]
+    for f in active_field:
+        if f.LEVEL == LEVEL_ONE:
+            tp1.append(f)
+        elif f.LEVEL == LEVEL_TWO:
+            tp2.append(f)
+        elif f.LEVEL == LEVEL_THREE:
+            tp3.append(f)
+        elif f.LEVEL == LEVEL_FOUR:
+            tp4.append(f)
+        elif f.LEVEL == LEVEL_FIVE:
+            tp5.append(f)
+    tl = [turtle.Turtle() for i in range(0,5)]
+    lg=(g for g in LEVEL_LIST)
+    lpg=(pg for pg in [len(tp1),len(tp2),len(tp3),len(tp4),len(tp5)])
+    i=0
+    pl=[1,10,25,50,100]
+    sum=0
+    totalscoreturtle=turtle.Turtle()
+    totalscoreturtle.penup()
+    totalscoreturtle.hideturtle()
+    totalscoreturtle.color('gold')
+    totalscoreturtle.setpos(50,200)
+    # totalscoreturtle.write('TOTAL SCORE:\n  ' + '  '+ str(sum),False,"left",("Sans",12,"bold"))
+    totalscoreturtle.st()
+
+    for t in tl:
+        t.penup()
+        t.hideturtle()
+        ll=next(lg)
+        lp=next(lpg)
+        t.shape(ll[0])
+        t.color(ll[1])
+        t.setpos(-75,250-i*20)
+        thp=pl[i]*lp
+        t.write('    ×'+str(lp)+' = ' + str(thp),False,"left",("Sans",12,"bold"))
+        sum += thp
+        totalscoreturtle.undo()
+        totalscoreturtle.write('  TOTAL SCORE:\n' + '      ' + str(sum) + ' POINTS',False,"left",("Sans",15,"bold"))
+        t.st()
+        i += 1
 # ランダムでレベル1を生成する
 def create_new():
     empty_field = get_field_condition(1)
     # 空きスペースが０なら終了
-    if len(empty_field) == 0:
-        msg = """complete!!
-        press q botton """
-        t=turtle.Turtle()
-        t.color('red')
-        t.setpos(0,200)
-        t.write(msg,True,"center",("Sans",30,"bold"))
-        #stop stream
-        stream.stop_stream()
-        stream.close()
-        wf.close()
-
-        #close pyaudio
-        p.terminate()
+    if len(empty_field) == 0 or ct.COUNTER == 0:
+        finish()
         return 0
 
     # ランダムで空きスペースにレベル１を生成
@@ -166,7 +200,6 @@ def move2(corse,ncorse,pb):
         while min(cond['corse1']) < max(cond['corse2']):
             pos = cond['start_pos']
             for c in corse:
-                print(c)
                 if c[0] == pos:
                     pos += cond['step_pos']
                     continue
@@ -195,6 +228,9 @@ def move(pb):
     if wait_flg is True:
         return 0
     wait_flg = True
+    ct.COUNTER -= 1
+    ct.undo()
+    ct.write('COUNTER:'+str(ct.COUNTER),False,"center",("Sans",10,"bold"))
     # アクティブを取得
     active_field = get_field_condition(2)
     # コースごとアクティブタートルジェネレータイテレータ
@@ -216,50 +252,101 @@ def move(pb):
     create_new()
     wait_flg = False
 
-wait_flg = False
-bgm = False
+def retry():
+    global COUNTER
+    global wait_flg
+    global bgm
+    global FIELD
+    global ct
+    global stream
+    global wf
+    global p
+
+    if wait_flg is True:
+        stream.stop_stream()
+        stream.close()
+        wf.close()
+        p.terminate()
+    wn.reset()
+    wn.clear()
+    wn.screensize(400,400)
+    wn.reset()
+    wn.setworldcoordinates(-400,-400,400,400)
+    wn.bgcolor("black")
+    wn.title("game")
+    wn.mode("logo")
+
+    COUNTER = 50
+    wait_flg = False
+    bgm = False
+    FIELD = []
+    FIELD1 = []
+    for x in [-3,-1,1,3]:
+        for y in [-3,-1,1,3]:
+            t=''
+            t=turtle.Turtle()
+            t.penup()
+            t.hideturtle()
+            setattr(t,'LEVEL',LEVEL)
+            setattr(t,'reset_level',reset_level)
+            setattr(t,'set_lev',set_lev)
+            t.reset_level(t)
+            t.setx(x*50)
+            t.sety(y*50)
+            if abs(x) != 5 and abs(y) != 5:
+                t.st()
+            FIELD1.append(t)
+        FIELD.append(FIELD1)
+        FIELD1 = []
+
+    create_thread()
+
+    ct=object()
+    ct=turtle.Turtle()
+    ct.penup()
+    ct.color('white')
+    ct.setpos(-200,200)
+    setattr(ct,'COUNTER',COUNTER)
+    ct.write('COUNTER:'+str(ct.COUNTER),False,"center",("Sans",10,"bold"))
+
+    wn.onkey(retry,'r')
+    wn.onkey(end,'q')
+    wn.onkey(lambda: move(1),'Up')
+    wn.onkey(lambda: move(-1),'Down')
+    wn.onkey(lambda: move(2),'Right')
+    wn.onkey(lambda: move(-2),'Left')
+
+    create_new()
+
+    wn.listen()
+    wn.mainloop()
+
+
+FIELD_DEFAULT = ("classic",'blue')
+LEVEL_ONE = ("arrow",'yellow')
+LEVEL_TWO = ("triangle",'pink')
+LEVEL_THREE = ("square",'white')
+LEVEL_FOUR = ("circle",'red')
+LEVEL_FIVE = ("turtle",'green')
+
+LEVEL_LIST=[LEVEL_ONE,LEVEL_TWO,LEVEL_THREE,LEVEL_FOUR,LEVEL_FIVE]
+LEVEL = FIELD_DEFAULT
 
 wn = turtle.Screen()
-wn.screensize(400,400)
-wn.reset()
-wn.setworldcoordinates(-400,-400,400,400)
-wn.bgcolor("black")
-wn.title("game")
-wn.mode("logo")
+wait_flg = False
+retry()
 
-FIELD = []
-FIELD1 = []
-for x in [-3,-1,1,3]:
-    for y in [-3,-1,1,3]:
-        t=''
-        t=turtle.Turtle()
-        t.penup()
-        t.hideturtle()
-        setattr(t,'LEVEL',LEVEL)
-        setattr(t,'reset_level',reset_level)
-        setattr(t,'set_lev',set_lev)
-        t.reset_level(t)
-        t.setx(x*50)
-        t.sety(y*50)
-        if abs(x) != 5 and abs(y) != 5:
-            t.st()
-        FIELD1.append(t)
-    FIELD.append(FIELD1)
-    FIELD1 = []
-
-create_thread()
-
-
-wn.onkey(end,'q')
-wn.onkey(lambda: move(1),'Up')
-wn.onkey(lambda: move(-1),'Down')
-wn.onkey(lambda: move(2),'Right')
-wn.onkey(lambda: move(-2),'Left')
-
-create_new()
-
-wn.listen()
-wn.mainloop()
+# wn.onkey(retry,'r')
+# wn.onkey(end,'q')
+# wn.onkey(lambda: move(1),'Up')
+# wn.onkey(lambda: move(-1),'Down')
+# wn.onkey(lambda: move(2),'Right')
+# wn.onkey(lambda: move(-2),'Left')
+#
+# create_new()
+#
+# wn.listen()
+# wn.mainloop()
 
 # TODO: 100回カウンタ
 # 動作なめらか
