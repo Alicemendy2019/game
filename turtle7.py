@@ -77,6 +77,7 @@ def finish():
     t=turtle.Turtle()
     t.color('red')
     t.setpos(0,-200)
+    t.shape('blank')
     t.write(msg,True,"center",("Sans",20,"bold"))
     #stop stream
     stream.stop_stream()
@@ -154,8 +155,6 @@ def corse_check_for_levelup(corse,pb):
         for c in corse:
             if lu_flg == False:
                 if c[1].shape() == pre[2] and pre[2] != LEVEL_FIVE[0]:
-                    # pre[1].reset_level(pre[1])
-                    # c[1].set_lev(c[1])
                     pre[1].set_lev(pre[1])
                     c[1].reset_level(c[1])
                     lu_flg = True
